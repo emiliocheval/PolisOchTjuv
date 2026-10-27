@@ -7,7 +7,7 @@ namespace TjuvochPolis
     class Program
     {
         static void Main(string[] args)
-        {S
+        {
             Console.CursorVisible = false;
             int width = 100;
             int height = 25;
@@ -91,3 +91,35 @@ namespace TjuvochPolis
                                     Thread.Sleep(2000); // Pausa i 2 sekunder
                                 }
                             }
+
+                            // Polis möter Tjuv
+                            else if ((p1 is Polis && p2 is Thief) || (p1 is Thief && p2 is Polis))
+                            {
+                                Polis p = (p1 is Polis) ? (Polis)p1 : (Polis)p2;
+                                Thief t = (p1 is Thief) ? (Thief)p1 : (Thief)p2;
+
+                                if (t.Inventory.Count > 0)
+                                {
+                                    p.Inventory.AddRange(t.Inventory);
+                                    t.Inventory.Clear();
+                                    arrestedThieves++;
+
+                                    Console.ForegroundColor = ConsoleColor.Blue;
+                                    Console.WriteLine("\nPOLIS GRIPER TJUV och beslagtar bytet!           ");
+                                    Console.ResetColor();
+                                    Thread.Sleep(2000); // Pausa i 2 sekunder
+                                }
+                            }
+                        }
+                    }
+                }
+                Thread.Sleep(200);
+            }
+        }
+
+        static int GetDir(Random rnd)
+        {
+            return rnd.Next(-1, 2);
+        }
+    }
+}
