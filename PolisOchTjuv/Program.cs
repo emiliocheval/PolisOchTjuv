@@ -61,3 +61,19 @@ namespace TjuvochPolis
 
                 Console.WriteLine($"\nAntal rånade medborgare: {robbedCitizens}    ");
                 Console.WriteLine($"Antal gripna tjuvar: {arrestedThieves}      ");
+
+                // 3. Kolla kollisioner
+                for (int i = 0; i < people.Count; i++)
+                {
+                    for (int j = i + 1; j < people.Count; j++)
+                    {
+                        if (people[i].X == people[j].X && people[i].Y == people[j].Y)
+                        {
+                            Person p1 = people[i];
+                            Person p2 = people[j];
+
+                            // Tjuv möter Medborgare
+                            if ((p1 is Thief && p2 is Citizen) || (p1 is Citizen && p2 is Thief))
+                            {
+                                Citizen c = (p1 is Citizen) ? (Citizen)p1 : (Citizen)p2;
+                                Thief t = (p1 is Thief) ? (Thief)p1 : (Thief)p2;
