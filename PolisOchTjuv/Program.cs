@@ -7,7 +7,7 @@ namespace TjuvochPolis
     class Program
     {
         static void Main(string[] args)
-        {
+        {S
             Console.CursorVisible = false;
             int width = 100;
             int height = 25;
