@@ -77,3 +77,17 @@ namespace TjuvochPolis
                             {
                                 Citizen c = (p1 is Citizen) ? (Citizen)p1 : (Citizen)p2;
                                 Thief t = (p1 is Thief) ? (Thief)p1 : (Thief)p2;
+                                if (c.Inventory.Count > 0)
+                                {
+                                    int itemIndex = rnd.Next(c.Inventory.Count);
+                                    Item stolenItem = c.Inventory[itemIndex];
+                                    c.Inventory.RemoveAt(itemIndex);
+                                    t.Inventory.Add(stolenItem);
+                                    robbedCitizens++;
+
+                                    Console.ForegroundColor = ConsoleColor.Red;
+                                    Console.WriteLine($"\nTJUV RÅNAR MEDBORGARE på {stolenItem.Name}!       ");
+                                    Console.ResetColor();
+                                    Thread.Sleep(2000); // Pausa i 2 sekunder
+                                }
+                            }
