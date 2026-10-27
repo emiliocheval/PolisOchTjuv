@@ -21,3 +21,43 @@ namespace TjuvochPolis
             for (int i = 0; i < 30; i++) people.Add(new Citizen(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
             for (int i = 0; i < 20; i++) people.Add(new Thief(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
             for (int i = 0; i < 10; i++) people.Add(new Polis(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
+            
+            while (true)
+            {
+                // 1. Flytta alla
+                foreach (var p in people)
+                {
+                    p.Move(width, height);
+                }
+
+                // 2. Rita upp staden med FÄRG
+                Console.SetCursorPosition(0, 0);
+
+                // Vi använder en array av Person istället för char för att veta vem som är vem
+                Person[,] city = new Person[height, width];
+                foreach (var p in people) city[p.Y, p.X] = p;
+
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        if (city[y, x] == null)
+                        {
+                            Console.Write(' ');
+                        }
+                        else
+                        {
+                            // Sätt färg baserat på kategori
+                            if (city[y, x] is Citizen) Console.ForegroundColor = ConsoleColor.Green;
+                            else if (city[y, x] is Thief) Console.ForegroundColor = ConsoleColor.Red;
+                            else if (city[y, x] is Polis) Console.ForegroundColor = ConsoleColor.Blue;
+
+                            Console.Write(city[y, x].GetSymbol());
+                            Console.ResetColor(); // Återställ färgen till vit
+                        }
+                    }
+                    Console.WriteLine();
+                }
+
+                Console.WriteLine($"\nAntal rånade medborgare: {robbedCitizens}    ");
+                Console.WriteLine($"Antal gripna tjuvar: {arrestedThieves}      ");
