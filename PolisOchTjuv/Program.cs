@@ -10,16 +10,16 @@ namespace TjuvochPolis
         {
             Console.CursorVisible = false;
             int width = 100;
-            int height = 25;
+            int height = 15;
             City city = new City(width, height);
             Random rnd = new Random();
 
             int robbedCitizens = 0;
             int arrestedThieves = 0;
 
-            if (Console.WindowWidth < width + 2 || Console.WindowHeight < height + 5)
+            if (Console.WindowWidth < width + 2 || Console.WindowHeight < 25)
             {
-                Console.WriteLine($"Console window too small. Needs at least {width + 2} x {height + 5}.");
+                Console.WriteLine($"Console window too small. Needs at least {width + 2} x 25.");
                 return;
             }
 
@@ -41,36 +41,7 @@ namespace TjuvochPolis
 
                     // 2. Rita upp staden med FÄRG
                     Console.SetCursorPosition(0, 0);
-                    Console.WriteLine("+" + new string('-', width) + "+");
-
-                    // Vi använder en array av Person istället för char för att veta vem som är vem
-                    Person[,] grid = new Person[height, width];
-                    foreach (var p in city.People) grid[p.Y, p.X] = p;
-
-                    for (int y = 0; y < height; y++)
-                    {
-                        Console.Write('|');
-
-                        for (int x = 0; x < width; x++)
-                        {
-                            if (grid[y, x] == null)
-                            {
-                                Console.Write(' ');
-                            }
-                            else
-                            {
-                                // Sätt färg baserat på kategori
-                                if (grid[y, x] is Citizen) Console.ForegroundColor = ConsoleColor.Green;
-                                else if (grid[y, x] is Thief) Console.ForegroundColor = ConsoleColor.Red;
-                                else if (grid[y, x] is Polis) Console.ForegroundColor = ConsoleColor.Blue;
-
-                                Console.Write(grid[y, x].GetSymbol());
-                                Console.ResetColor(); // Återställ färgen till vit
-                            }
-                        }
-                        Console.WriteLine('|');
-                    }
-                    Console.WriteLine("+" + new string('-', width) + "+");
+                    DrawPlace(city, "CITY");
 
                     Console.WriteLine($"\nAntal rånade medborgare: {robbedCitizens}    ");
                     Console.WriteLine($"Antal gripna tjuvar: {arrestedThieves}      ");
@@ -137,10 +108,42 @@ namespace TjuvochPolis
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
 
-            static int GetDir(Random rnd)
-            {
-                return rnd.Next(-1, 2);
-            }
+           
         }
+
+        static int GetDir(Random rnd)
+        {
+            return rnd.Next(-1, 2);
+        }
+
+        static void DrawPlace(Place place, string title)
+        {
+            Console.WriteLine(("= " + title + " ").PadRight(place.Width + 2, '='));
+
+            Person[,] grid = new Person[place.Height, place.Width];
+            foreach (var p in place.People) grid[p.Y, p.X] = p;
+
+            for (int y = 0; y < place.Height; y++)
+            {
+                Console.Write('|');
+                for (int x = 0; x < place.Width; x++)
+                {
+                    Person p = grid[y, x];
+                    if (p == null)
+                    {
+                        Console.Write(' ');
+                        continue;
+                    }
+                    if (p is Citizen) Console.ForegroundColor = ConsoleColor.Green;
+                    else if (p is Thief) Console.ForegroundColor = ConsoleColor.Red;
+                    else if (p is Polis) Console.ForegroundColor = ConsoleColor.Blue;
+                    Console.Write(p.GetSymbol());
+                    Console.ResetColor();
+                }
+                Console.WriteLine('|');
+            }
+            Console.WriteLine("+" + new string('-', place.Width) + "+");
+        }
+
     }
 }
