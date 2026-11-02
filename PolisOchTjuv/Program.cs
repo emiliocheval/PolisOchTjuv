@@ -17,109 +17,130 @@ namespace TjuvochPolis
             int robbedCitizens = 0;
             int arrestedThieves = 0;
 
+            if (Console.WindowWidth < width + 2 || Console.WindowHeight < height + 5)
+            {
+                Console.WriteLine($"Console window too small. Needs at least {width + 2} x {height + 5}.");
+                return;
+            }
+
+
             // Skapa 30 medborgare, 20 tjuvar, 10 poliser
             for (int i = 0; i < 30; i++) people.Add(new Citizen(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
             for (int i = 0; i < 20; i++) people.Add(new Thief(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
             for (int i = 0; i < 10; i++) people.Add(new Polis(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
-            
-            while (true)
+
+            try
             {
-                // 1. Flytta alla
-                foreach (var p in people)
+                while (true)
                 {
-                    p.Move(width, height);
-                }
-
-                // 2. Rita upp staden med FÄRG
-                Console.SetCursorPosition(0, 0);
-
-                // Vi använder en array av Person istället för char för att veta vem som är vem
-                Person[,] city = new Person[height, width];
-                foreach (var p in people) city[p.Y, p.X] = p;
-
-                for (int y = 0; y < height; y++)
-                {
-                    for (int x = 0; x < width; x++)
+                    // 1. Flytta alla
+                    foreach (var p in people)
                     {
-                        if (city[y, x] == null)
-                        {
-                            Console.Write(' ');
-                        }
-                        else
-                        {
-                            // Sätt färg baserat på kategori
-                            if (city[y, x] is Citizen) Console.ForegroundColor = ConsoleColor.Green;
-                            else if (city[y, x] is Thief) Console.ForegroundColor = ConsoleColor.Red;
-                            else if (city[y, x] is Polis) Console.ForegroundColor = ConsoleColor.Blue;
-
-                            Console.Write(city[y, x].GetSymbol());
-                            Console.ResetColor(); // Återställ färgen till vit
-                        }
+                        p.Move(width, height);
                     }
-                    Console.WriteLine();
-                }
 
-                Console.WriteLine($"\nAntal rånade medborgare: {robbedCitizens}    ");
-                Console.WriteLine($"Antal gripna tjuvar: {arrestedThieves}      ");
+                    // 2. Rita upp staden med FÄRG
+                    Console.SetCursorPosition(0, 0);
+                    Console.WriteLine("+" + new string('-', width) + "+");
 
-                // 3. Kolla kollisioner
-                for (int i = 0; i < people.Count; i++)
-                {
-                    for (int j = i + 1; j < people.Count; j++)
+                    // Vi använder en array av Person istället för char för att veta vem som är vem
+                    Person[,] city = new Person[height, width];
+                    foreach (var p in people) city[p.Y, p.X] = p;
+
+                    for (int y = 0; y < height; y++)
                     {
-                        if (people[i].X == people[j].X && people[i].Y == people[j].Y)
+                        Console.Write('|');
+
+                        for (int x = 0; x < width; x++)
                         {
-                            Person p1 = people[i];
-                            Person p2 = people[j];
-
-                            // Tjuv möter Medborgare
-                            if ((p1 is Thief && p2 is Citizen) || (p1 is Citizen && p2 is Thief))
+                            if (city[y, x] == null)
                             {
-                                Citizen c = (p1 is Citizen) ? (Citizen)p1 : (Citizen)p2;
-                                Thief t = (p1 is Thief) ? (Thief)p1 : (Thief)p2;
-                                if (c.Inventory.Count > 0)
-                                {
-                                    int itemIndex = rnd.Next(c.Inventory.Count);
-                                    Item stolenItem = c.Inventory[itemIndex];
-                                    c.Inventory.RemoveAt(itemIndex);
-                                    t.Inventory.Add(stolenItem);
-                                    robbedCitizens++;
-
-                                    Console.ForegroundColor = ConsoleColor.Red;
-                                    Console.WriteLine($"\nTJUV RÅNAR MEDBORGARE på {stolenItem.Name}!       ");
-                                    Console.ResetColor();
-                                    Thread.Sleep(2000); // Pausa i 2 sekunder
-                                }
+                                Console.Write(' ');
                             }
-
-                            // Polis möter Tjuv
-                            else if ((p1 is Polis && p2 is Thief) || (p1 is Thief && p2 is Polis))
+                            else
                             {
-                                Polis p = (p1 is Polis) ? (Polis)p1 : (Polis)p2;
-                                Thief t = (p1 is Thief) ? (Thief)p1 : (Thief)p2;
+                                // Sätt färg baserat på kategori
+                                if (city[y, x] is Citizen) Console.ForegroundColor = ConsoleColor.Green;
+                                else if (city[y, x] is Thief) Console.ForegroundColor = ConsoleColor.Red;
+                                else if (city[y, x] is Polis) Console.ForegroundColor = ConsoleColor.Blue;
 
-                                if (t.Inventory.Count > 0)
-                                {
-                                    p.Inventory.AddRange(t.Inventory);
-                                    t.Inventory.Clear();
-                                    arrestedThieves++;
-
-                                    Console.ForegroundColor = ConsoleColor.Blue;
-                                    Console.WriteLine("\nPOLIS GRIPER TJUV och beslagtar bytet!           ");
-                                    Console.ResetColor();
-                                    Thread.Sleep(2000); // Pausa i 2 sekunder
-                                }
+                                Console.Write(city[y, x].GetSymbol());
+                                Console.ResetColor(); // Återställ färgen till vit
                             }
                         }
+                        Console.WriteLine('|');
                     }
+                    Console.WriteLine("+" + new string('-', width) + "+");
+
+                    Console.WriteLine($"\nAntal rånade medborgare: {robbedCitizens}    ");
+                    Console.WriteLine($"Antal gripna tjuvar: {arrestedThieves}      ");
+
+                    // 3. Kolla kollisioner
+                    for (int i = 0; i < people.Count; i++)
+                    {
+                        for (int j = i + 1; j < people.Count; j++)
+                        {
+                            if (people[i].X == people[j].X && people[i].Y == people[j].Y)
+                            {
+                                Person p1 = people[i];
+                                Person p2 = people[j];
+
+                                // Tjuv möter Medborgare
+                                if ((p1 is Thief && p2 is Citizen) || (p1 is Citizen && p2 is Thief))
+                                {
+                                    Citizen c = (p1 is Citizen) ? (Citizen)p1 : (Citizen)p2;
+                                    Thief t = (p1 is Thief) ? (Thief)p1 : (Thief)p2;
+                                    if (c.Inventory.Count > 0)
+                                    {
+                                        int itemIndex = rnd.Next(c.Inventory.Count);
+                                        Item stolenItem = c.Inventory[itemIndex];
+                                        c.Inventory.RemoveAt(itemIndex);
+                                        t.Inventory.Add(stolenItem);
+                                        robbedCitizens++;
+
+                                        Console.ForegroundColor = ConsoleColor.Red;
+                                        Console.WriteLine($"\nTJUV RÅNAR MEDBORGARE på {stolenItem.Name}!       ");
+                                        Console.ResetColor();
+                                        Thread.Sleep(2000); // Pausa i 2 sekunder
+                                    }
+                                }
+
+                                // Polis möter Tjuv
+                                else if ((p1 is Polis && p2 is Thief) || (p1 is Thief && p2 is Polis))
+                                {
+                                    Polis p = (p1 is Polis) ? (Polis)p1 : (Polis)p2;
+                                    Thief t = (p1 is Thief) ? (Thief)p1 : (Thief)p2;
+
+                                    if (t.Inventory.Count > 0)
+                                    {
+                                        p.Inventory.AddRange(t.Inventory);
+                                        t.Inventory.Clear();
+                                        arrestedThieves++;
+
+                                        Console.ForegroundColor = ConsoleColor.Blue;
+                                        Console.WriteLine("\nPOLIS GRIPER TJUV och beslagtar bytet!           ");
+                                        Console.ResetColor();
+                                        Thread.Sleep(2000); // Pausa i 2 sekunder
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Thread.Sleep(200);
                 }
-                Thread.Sleep(200);
             }
-        }
+            catch (Exception ex)
+            {
+                Console.ResetColor();
+                Console.CursorVisible = true;
+                Console.Clear();
+                Console.WriteLine($"An error occurred: {ex.Message}");
+            }
 
-        static int GetDir(Random rnd)
-        {
-            return rnd.Next(-1, 2);
+            static int GetDir(Random rnd)
+            {
+                return rnd.Next(-1, 2);
+            }
         }
     }
 }
