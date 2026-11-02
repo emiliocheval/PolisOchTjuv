@@ -12,6 +12,7 @@ namespace TjuvochPolis
             int width = 100;
             int height = 15;
             City city = new City(width, height);
+            Prison prison = new Prison(10, 10);
             Random rnd = new Random();
 
             int robbedCitizens = 0;
@@ -33,6 +34,20 @@ namespace TjuvochPolis
             {
                 while (true)
                 {
+
+                    // Frisläpp tjuvar vars tid är slut
+                    for (int i = prison.People.Count - 1; i >= 0; i--)
+                    {
+                        Thief released = (Thief)prison.People[i];
+                        if (DateTime.Now >= released.ReleaseTime)
+                        {
+                            prison.People.RemoveAt(i);
+                            released.X = rnd.Next(width);
+                            released.Y = rnd.Next(height);
+                            city.People.Add(released);
+                        }
+                    }
+
                     // 1. Flytta alla
                     foreach (var p in city.People)
                     {
