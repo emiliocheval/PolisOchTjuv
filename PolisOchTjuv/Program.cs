@@ -11,7 +11,7 @@ namespace TjuvochPolis
             Console.CursorVisible = false;
             int width = 100;
             int height = 25;
-            List<Person> people = new List<Person>();
+            City city = new City(width, height);
             Random rnd = new Random();
 
             int robbedCitizens = 0;
@@ -25,16 +25,16 @@ namespace TjuvochPolis
 
 
             // Skapa 30 medborgare, 20 tjuvar, 10 poliser
-            for (int i = 0; i < 30; i++) people.Add(new Citizen(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
-            for (int i = 0; i < 20; i++) people.Add(new Thief(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
-            for (int i = 0; i < 10; i++) people.Add(new Polis(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
+            for (int i = 0; i < 30; i++) city.People.Add(new Citizen(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
+            for (int i = 0; i < 20; i++) city.People.Add(new Thief(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
+            for (int i = 0; i < 10; i++) city.People.Add(new Polis(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
 
             try
             {
                 while (true)
                 {
                     // 1. Flytta alla
-                    foreach (var p in people)
+                    foreach (var p in city.People)
                     {
                         p.Move(width, height);
                     }
@@ -44,8 +44,8 @@ namespace TjuvochPolis
                     Console.WriteLine("+" + new string('-', width) + "+");
 
                     // Vi använder en array av Person istället för char för att veta vem som är vem
-                    Person[,] city = new Person[height, width];
-                    foreach (var p in people) city[p.Y, p.X] = p;
+                    Person[,] grid = new Person[height, width];
+                    foreach (var p in city.People) grid[p.Y, p.X] = p;
 
                     for (int y = 0; y < height; y++)
                     {
@@ -53,18 +53,18 @@ namespace TjuvochPolis
 
                         for (int x = 0; x < width; x++)
                         {
-                            if (city[y, x] == null)
+                            if (grid[y, x] == null)
                             {
                                 Console.Write(' ');
                             }
                             else
                             {
                                 // Sätt färg baserat på kategori
-                                if (city[y, x] is Citizen) Console.ForegroundColor = ConsoleColor.Green;
-                                else if (city[y, x] is Thief) Console.ForegroundColor = ConsoleColor.Red;
-                                else if (city[y, x] is Polis) Console.ForegroundColor = ConsoleColor.Blue;
+                                if (grid[y, x] is Citizen) Console.ForegroundColor = ConsoleColor.Green;
+                                else if (grid[y, x] is Thief) Console.ForegroundColor = ConsoleColor.Red;
+                                else if (grid[y, x] is Polis) Console.ForegroundColor = ConsoleColor.Blue;
 
-                                Console.Write(city[y, x].GetSymbol());
+                                Console.Write(grid[y, x].GetSymbol());
                                 Console.ResetColor(); // Återställ färgen till vit
                             }
                         }
@@ -76,14 +76,14 @@ namespace TjuvochPolis
                     Console.WriteLine($"Antal gripna tjuvar: {arrestedThieves}      ");
 
                     // 3. Kolla kollisioner
-                    for (int i = 0; i < people.Count; i++)
+                    for (int i = 0; i < city.People.Count; i++)
                     {
-                        for (int j = i + 1; j < people.Count; j++)
+                        for (int j = i + 1; j < city.People.Count; j++)
                         {
-                            if (people[i].X == people[j].X && people[i].Y == people[j].Y)
+                            if (city.People[i].X == city.People[j].X && city.People[i].Y == city.People[j].Y)
                             {
-                                Person p1 = people[i];
-                                Person p2 = people[j];
+                                Person p1 = city.People[i];
+                                Person p2 = city.People[j];
 
                                 // Tjuv möter Medborgare
                                 if ((p1 is Thief && p2 is Citizen) || (p1 is Citizen && p2 is Thief))
