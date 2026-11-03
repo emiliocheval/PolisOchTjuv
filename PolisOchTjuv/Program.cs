@@ -14,6 +14,13 @@ namespace TjuvochPolis
             City city = new City(width, height);
             Prison prison = new Prison(10, 10);
             Random rnd = new Random();
+            List<string> newsFeed = new List<string>();
+            
+            static void AddNews(List<string> newsFeed, string text)
+            {
+                newsFeed.Insert(0, text);
+                if (newsFeed.Count > 5) newsFeed.RemoveAt(newsFeed.Count - 1);
+            }
 
             int robbedCitizens = 0;
             int arrestedThieves = 0;
