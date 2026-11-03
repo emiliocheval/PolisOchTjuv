@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace TjuvochPolis
+namespace PoliceAndThieves
 {
     public abstract class Place
     {
@@ -14,24 +14,34 @@ namespace TjuvochPolis
             Height = height;
         }
 
+        // Moves all people within the current location.
         public void MoveAll()
         {
-            foreach (var p in People) p.Move(Width, Height);
+            foreach (var person in People)
+            {
+                person.Move(Width, Height);
+            }
         }
     }
 
     public class City : Place
     {
-        public City(int width, int height) : base(width, height) { }
+        public City(int width, int height) : base(width, height)
+        {
+        }
     }
 
     public class Prison : Place
     {
-        public Prison(int width, int height) : base(width, height) { }
+        public Prison(int width, int height) : base(width, height)
+        {
+        }
     }
 
     public class PoorHouse : Place
     {
-        public PoorHouse(int width, int height) : base(width, height) { }
+        public PoorHouse(int width, int height) : base(width, height)
+        {
+        }
     }
 }

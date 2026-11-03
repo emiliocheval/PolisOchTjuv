@@ -1,200 +1,366 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Threading;
+using TjuvochPolis;
 
-namespace TjuvochPolis
+namespace PoliceAndThieves
 {
-    class Program
+    internal class Program
     {
         static void Main(string[] args)
         {
-            Console.CursorVisible = false;
-            int width = 100;
-            int height = 15;
+            const int width = 100;
+            const int height = 15;
+
             City city = new City(width, height);
             Prison prison = new Prison(10, 10);
-            Random rnd = new Random();
+
+            Random random = new Random();
             List<string> newsFeed = new List<string>();
-            
-            static void AddNews(List<string> newsFeed, string text)
-            {
-                newsFeed.Insert(0, text);
-                if (newsFeed.Count > 5) newsFeed.RemoveAt(newsFeed.Count - 1);
-            }
 
             int robbedCitizens = 0;
             int arrestedThieves = 0;
 
-            if (Console.WindowWidth < width + 2 || Console.WindowHeight < 25)
+            if (Console.WindowWidth < width + 2 ||
+                Console.WindowHeight < 25)
             {
-                Console.WriteLine($"Console window too small. Needs at least {width + 2} x 25.");
+                Console.WriteLine(
+                    $"Console window too small. Minimum size: {width + 2} x 25.");
                 return;
             }
 
+            Console.CursorVisible = false;
 
-            // Skapa 30 medborgare, 20 tjuvar, 10 poliser
-            for (int i = 0; i < 30; i++) city.People.Add(new Citizen(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
-            for (int i = 0; i < 20; i++) city.People.Add(new Thief(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
-            for (int i = 0; i < 10; i++) city.People.Add(new Polis(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
+            // Create 30 citizens.
+            for (int i = 0; i < 30; i++)
+            {
+                city.People.Add(new Citizen(
+                    random.Next(width),
+                    random.Next(height),
+                    GetDirection(random),
+                    GetDirection(random)));
+            }
+
+            // Create 20 thieves.
+            for (int i = 0; i < 20; i++)
+            {
+                city.People.Add(new Thief(
+                    random.Next(width),
+                    random.Next(height),
+                    GetDirection(random),
+                    GetDirection(random)));
+            }
+
+            // Create 10 police officers.
+            for (int i = 0; i < 10; i++)
+            {
+                city.People.Add(new Police(
+                    random.Next(width),
+                    random.Next(height),
+                    GetDirection(random),
+                    GetDirection(random)));
+            }
+
+            AddNews(newsFeed, "City simulation started.");
 
             try
             {
                 while (true)
                 {
+                    // Handle keyboard input.
                     while (Console.KeyAvailable)
                     {
                         ConsoleKey key = Console.ReadKey(true).Key;
+
+                        if (key == ConsoleKey.Escape)
+                        {
+                            return;
+                        }
+
                         if (key == ConsoleKey.C)
                         {
-                            city.People.Add(new Citizen(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
-                            AddNews(newsFeed, "A new citizen moves into the city");
+                            city.People.Add(new Citizen(
+                                random.Next(width),
+                                random.Next(height),
+                                GetDirection(random),
+                                GetDirection(random)));
+
+                            AddNews(newsFeed,
+                                "A new citizen has moved into the city.");
                         }
                         else if (key == ConsoleKey.T)
                         {
-                            city.People.Add(new Thief(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
-                            AddNews(newsFeed, "A new thief moves into the city");
+                            city.People.Add(new Thief(
+                                random.Next(width),
+                                random.Next(height),
+                                GetDirection(random),
+                                GetDirection(random)));
+
+                            AddNews(newsFeed,
+                                "A new thief has entered the city.");
                         }
                         else if (key == ConsoleKey.P)
                         {
-                            city.People.Add(new Polis(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
-                            AddNews(newsFeed, "A new police officer moves into the city");
+                            city.People.Add(new Police(
+                                random.Next(width),
+                                random.Next(height),
+                                GetDirection(random),
+                                GetDirection(random)));
+
+                            AddNews(newsFeed,
+                                "A new police officer has joined the city.");
                         }
                     }
 
-                    // Frisläpp tjuvar vars tid är slut
+                    // Release thieves whose prison sentences have ended.
                     for (int i = prison.People.Count - 1; i >= 0; i--)
                     {
-                        Thief released = (Thief)prison.People[i];
-                        if (DateTime.Now >= released.ReleaseTime)
+                        Thief thief = (Thief)prison.People[i];
+
+                        if (DateTime.Now >= thief.ReleaseTime)
                         {
                             prison.People.RemoveAt(i);
-                            released.X = rnd.Next(width);
-                            released.Y = rnd.Next(height);
-                            city.People.Add(released);
+
+                            thief.X = random.Next(width);
+                            thief.Y = random.Next(height);
+
+                            city.People.Add(thief);
+
+                            AddNews(newsFeed,
+                                "A thief has been released from prison.");
                         }
                     }
 
-                    // 1. Flytta alla
+                    // Move all people.
                     city.MoveAll();
                     prison.MoveAll();
 
-                    // 2. Rita upp staden med FÄRG
-                    Console.SetCursorPosition(0, 0);
-                    DrawPlace(city, "CITY");
+                    List<Thief> thievesToPrison = new List<Thief>();
 
-                    Console.WriteLine($"\nAntal rånade medborgare: {robbedCitizens}    ");
-                    Console.WriteLine($"Antal gripna tjuvar: {arrestedThieves}      ");
-
-                    List<Thief> toPrison = new List<Thief>();
-
-                    // 3. Kolla kollisioner
+                    // Check collisions between people.
                     for (int i = 0; i < city.People.Count; i++)
                     {
                         for (int j = i + 1; j < city.People.Count; j++)
                         {
-                            if (city.People[i].X == city.People[j].X && city.People[i].Y == city.People[j].Y)
+                            Person firstPerson = city.People[i];
+                            Person secondPerson = city.People[j];
+
+                            if (firstPerson.X != secondPerson.X ||
+                                firstPerson.Y != secondPerson.Y)
                             {
-                                Person p1 = city.People[i];
-                                Person p2 = city.People[j];
+                                continue;
+                            }
 
-                                // Tjuv möter Medborgare
-                                if ((p1 is Thief && p2 is Citizen) || (p1 is Citizen && p2 is Thief))
+                            // A thief encounters a citizen.
+                            if ((firstPerson is Thief &&
+                                 secondPerson is Citizen) ||
+                                (firstPerson is Citizen &&
+                                 secondPerson is Thief))
+                            {
+                                Citizen citizen = firstPerson is Citizen
+                                    ? (Citizen)firstPerson
+                                    : (Citizen)secondPerson;
+
+                                Thief thief = firstPerson is Thief
+                                    ? (Thief)firstPerson
+                                    : (Thief)secondPerson;
+
+                                if (citizen.Inventory.Count > 0)
                                 {
-                                    Citizen c = (p1 is Citizen) ? (Citizen)p1 : (Citizen)p2;
-                                    Thief t = (p1 is Thief) ? (Thief)p1 : (Thief)p2;
-                                    if (c.Inventory.Count > 0)
-                                    {
-                                        int itemIndex = rnd.Next(c.Inventory.Count);
-                                        Item stolenItem = c.Inventory[itemIndex];
-                                        c.Inventory.RemoveAt(itemIndex);
-                                        t.Inventory.Add(stolenItem);
-                                        robbedCitizens++;
+                                    int itemIndex = random.Next(
+                                        citizen.Inventory.Count);
 
-                                        Console.ForegroundColor = ConsoleColor.Red;
-                                        Console.WriteLine($"\nTJUV RÅNAR MEDBORGARE på {stolenItem.Name}!       ");
-                                        Console.ResetColor();
-                                        Thread.Sleep(2000); // Pausa i 2 sekunder
-                                    }
+                                    Item stolenItem =
+                                        citizen.Inventory[itemIndex];
+
+                                    citizen.Inventory.RemoveAt(itemIndex);
+                                    thief.Inventory.Add(stolenItem);
+
+                                    robbedCitizens++;
+
+                                    AddNews(newsFeed,
+                                        $"ROBBERY: A thief stole {stolenItem.Name}!");
+
+                                    Thread.Sleep(2000);
                                 }
+                            }
 
-                                // Polis möter Tjuv
-                                else if ((p1 is Polis && p2 is Thief) || (p1 is Thief && p2 is Polis))
+                            // A police officer encounters a thief.
+                            else if ((firstPerson is Police &&
+                                      secondPerson is Thief) ||
+                                     (firstPerson is Thief &&
+                                      secondPerson is Police))
+                            {
+                                Police officer = firstPerson is Police
+                                    ? (Police)firstPerson
+                                    : (Police)secondPerson;
+
+                                Thief thief = firstPerson is Thief
+                                    ? (Thief)firstPerson
+                                    : (Thief)secondPerson;
+
+                                if (thief.Inventory.Count > 0 &&
+                                    !thievesToPrison.Contains(thief))
                                 {
-                                    Polis p = (p1 is Polis) ? (Polis)p1 : (Polis)p2;
-                                    Thief t = (p1 is Thief) ? (Thief)p1 : (Thief)p2;
+                                    int stolenItemCount =
+                                        thief.Inventory.Count;
 
-                                    if (t.Inventory.Count > 0)
-                                    {
-                                        int count = t.Inventory.Count;
-                                        p.Inventory.AddRange(t.Inventory);
-                                        t.Inventory.Clear();
-                                        t.ReleaseTime = DateTime.Now.AddSeconds(count * 10);   // 4 saker = 40 s
-                                        arrestedThieves++;
-                                        toPrison.Add(t);
+                                    // Confiscate stolen items.
+                                    officer.Inventory.AddRange(thief.Inventory);
+                                    thief.Inventory.Clear();
 
-                                        Console.ForegroundColor = ConsoleColor.Blue;
-                                        Console.WriteLine("\nPOLIS GRIPER TJUV och beslagtar bytet!           ");
-                                        Console.ResetColor();
-                                        Thread.Sleep(2000);
-                                    }
+                                    // Ten seconds in prison per stolen item.
+                                    int sentenceSeconds =
+                                        stolenItemCount * 10;
+
+                                    thief.ReleaseTime =
+                                        DateTime.Now.AddSeconds(sentenceSeconds);
+
+                                    arrestedThieves++;
+                                    thievesToPrison.Add(thief);
+
+                                    AddNews(newsFeed,
+                                        $"ARREST: Thief sentenced to {sentenceSeconds} seconds!");
+
+                                    Thread.Sleep(2000);
                                 }
                             }
                         }
                     }
-                    foreach (Thief thief in toPrison)
+
+                    // Move arrested thieves to prison.
+                    foreach (Thief thief in thievesToPrison)
                     {
                         city.People.Remove(thief);
-                        thief.X = rnd.Next(prison.Width);
-                        thief.Y = rnd.Next(prison.Height);
+
+                        thief.X = random.Next(prison.Width);
+                        thief.Y = random.Next(prison.Height);
+
                         prison.People.Add(thief);
                     }
+
+                    // Draw the city and statistics.
+                    Console.SetCursorPosition(0, 0);
+
+                    DrawPlace(city, "CITY");
+
+                    Console.WriteLine();
+                    Console.WriteLine(
+                        $"Citizens robbed: {robbedCitizens}          ");
+                    Console.WriteLine(
+                        $"Thieves arrested: {arrestedThieves}          ");
+                    Console.WriteLine(
+                        $"Thieves in prison: {prison.People.Count}          ");
+
+                    // Display the latest news.
+                    Console.WriteLine();
+                    Console.WriteLine("LATEST NEWS");
+                    Console.WriteLine(new string('-', 70));
+
+                    for (int i = 0; i < 5; i++)
+                    {
+                        string message = i < newsFeed.Count
+                            ? newsFeed[i]
+                            : "";
+
+                        Console.WriteLine(
+                            message.PadRight(width));
+                    }
+
+                    Console.WriteLine();
+                    Console.WriteLine(
+                        "CONTROLS: [C] Citizen  [T] Thief  [P] Police  [ESC] Exit");
+
                     Thread.Sleep(200);
                 }
             }
             catch (Exception ex)
             {
+                Console.Clear();
+                Console.WriteLine(
+                    $"An error occurred: {ex.Message}");
+            }
+            finally
+            {
                 Console.ResetColor();
                 Console.CursorVisible = true;
-                Console.Clear();
-                Console.WriteLine($"An error occurred: {ex.Message}");
             }
-
-           
         }
 
-        static int GetDir(Random rnd)
+        // Add a message to the news feed.
+        static void AddNews(
+            List<string> newsFeed,
+            string message)
         {
-            return rnd.Next(-1, 2);
+            newsFeed.Insert(0, message);
+
+            if (newsFeed.Count > 5)
+            {
+                newsFeed.RemoveAt(newsFeed.Count - 1);
+            }
         }
 
+        // Generate a random movement direction.
+        static int GetDirection(Random random)
+        {
+            return random.Next(-1, 2);
+        }
+
+        // Draw a location and all its inhabitants.
         static void DrawPlace(Place place, string title)
         {
-            Console.WriteLine(("= " + title + " ").PadRight(place.Width + 2, '='));
+            Console.WriteLine(
+                ("= " + title + " ").PadRight(
+                    place.Width + 2, '='));
 
-            Person[,] grid = new Person[place.Height, place.Width];
-            foreach (var p in place.People) grid[p.Y, p.X] = p;
+            Person[,] grid = new Person[
+                place.Height, place.Width];
+
+            foreach (Person person in place.People)
+            {
+                grid[person.Y, person.X] = person;
+            }
 
             for (int y = 0; y < place.Height; y++)
             {
                 Console.Write('|');
+
                 for (int x = 0; x < place.Width; x++)
                 {
-                    Person p = grid[y, x];
-                    if (p == null)
+                    Person person = grid[y, x];
+
+                    if (person == null)
                     {
                         Console.Write(' ');
                         continue;
                     }
-                    if (p is Citizen) Console.ForegroundColor = ConsoleColor.Green;
-                    else if (p is Thief) Console.ForegroundColor = ConsoleColor.Red;
-                    else if (p is Polis) Console.ForegroundColor = ConsoleColor.Blue;
-                    Console.Write(p.GetSymbol());
+
+                    if (person is Citizen)
+                    {
+                        Console.ForegroundColor =
+                            ConsoleColor.Green;
+                    }
+                    else if (person is Thief)
+                    {
+                        Console.ForegroundColor =
+                            ConsoleColor.Red;
+                    }
+                    else if (person is Police)
+                    {
+                        Console.ForegroundColor =
+                            ConsoleColor.Blue;
+                    }
+
+                    Console.Write(person.GetSymbol());
                     Console.ResetColor();
                 }
+
                 Console.WriteLine('|');
             }
-            Console.WriteLine("+" + new string('-', place.Width) + "+");
-        }
 
+            Console.WriteLine(
+                "+" + new string('-', place.Width) + "+");
+        }
     }
 }

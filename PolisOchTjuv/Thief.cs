@@ -1,13 +1,14 @@
-﻿using System;
+﻿
+using System;
 
-
-namespace TjuvochPolis
+namespace PoliceAndThieves
 {
     public class Thief : Person
     {
-
         public DateTime ReleaseTime { get; set; }
-        public Thief(int x, int y, int dirX, int dirY) : base(x, y, dirX, dirY)
+
+        public Thief(int x, int y, int dirX, int dirY)
+            : base(x, y, dirX, dirY)
         {
         }
 

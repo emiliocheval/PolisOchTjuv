@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿
+using System.Collections.Generic;
+using TjuvochPolis;
 
-namespace TjuvochPolis
+namespace PoliceAndThieves
 {
     public abstract class Person
     {
@@ -19,7 +21,8 @@ namespace TjuvochPolis
             Inventory = new List<Item>();
         }
 
-        // Metod för att röra sig och dyka upp på andra sidan om man går utanför[cite: 10]
+        // Moves the person and wraps around to the opposite side
+        // when reaching the boundaries of the game area.
         public void Move(int width, int height)
         {
             X += DirX;
