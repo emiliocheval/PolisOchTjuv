@@ -41,6 +41,28 @@ namespace TjuvochPolis
             {
                 while (true)
                 {
+                    while (Console.KeyAvailable)
+                    {
+                        ConsoleKey key = Console.ReadKey(true).Key;
+                        if (key == ConsoleKey.C)
+                        {
+                            city.People.Add(new Citizen(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
+                            AddNews(NewsFeed, "A new citizen moves into the city");
+                        }
+                        else
+                        }
+
+                        if (key == ConsoleKey.T)
+                        {
+                            city.People.Add(new Thief(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
+                            AddNews(newsFeed, ("A new thief moves into the city");
+                        }
+                        else if (key == ConsoleKey.P)
+                        {
+                            city.People.Add(new Polis(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
+                            AddNews(newsFeed, "A new police officer moves into the city");
+                        }
+                    }
 
                     // Frisläpp tjuvar vars tid är slut
                     for (int i = prison.People.Count - 1; i >= 0; i--)
