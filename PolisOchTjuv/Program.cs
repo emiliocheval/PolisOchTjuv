@@ -61,6 +61,7 @@ namespace TjuvochPolis
                         {
                             city.People.Add(new Polis(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
                             AddNews(newsFeed, "A new police officer moves into the city");
+                            
                         }
                     }
 
