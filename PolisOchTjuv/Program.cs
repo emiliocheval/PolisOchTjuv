@@ -47,21 +47,17 @@ namespace TjuvochPolis
                         if (key == ConsoleKey.C)
                         {
                             city.People.Add(new Citizen(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
-                            AddNews(NewsFeed, "A new citizen moves into the city");
+                            AddNews(newsFeed, "A new citizen moves into the city");
                         }
-                        else
-                        }
-
-                        if (key == ConsoleKey.T)
+                        else if (key == ConsoleKey.T)
                         {
                             city.People.Add(new Thief(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
-                            AddNews(newsFeed, ("A new thief moves into the city");
+                            AddNews(newsFeed, "A new thief moves into the city");
                         }
                         else if (key == ConsoleKey.P)
                         {
                             city.People.Add(new Polis(rnd.Next(width), rnd.Next(height), GetDir(rnd), GetDir(rnd)));
                             AddNews(newsFeed, "A new police officer moves into the city");
-                            
                         }
                     }
 
