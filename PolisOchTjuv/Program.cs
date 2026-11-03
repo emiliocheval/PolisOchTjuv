@@ -49,10 +49,8 @@ namespace TjuvochPolis
                     }
 
                     // 1. Flytta alla
-                    foreach (var p in city.People)
-                    {
-                        p.Move(width, height);
-                    }
+                    city.MoveAll();
+                    prison.MoveAll();
 
                     // 2. Rita upp staden med FÄRG
                     Console.SetCursorPosition(0, 0);
@@ -60,6 +58,8 @@ namespace TjuvochPolis
 
                     Console.WriteLine($"\nAntal rånade medborgare: {robbedCitizens}    ");
                     Console.WriteLine($"Antal gripna tjuvar: {arrestedThieves}      ");
+
+                    List<Thief> toPrison = new List<Thief>();
 
                     // 3. Kolla kollisioner
                     for (int i = 0; i < city.People.Count; i++)
@@ -99,18 +99,28 @@ namespace TjuvochPolis
 
                                     if (t.Inventory.Count > 0)
                                     {
+                                        int count = t.Inventory.Count;
                                         p.Inventory.AddRange(t.Inventory);
                                         t.Inventory.Clear();
+                                        t.ReleaseTime = DateTime.Now.AddSeconds(count * 10);   // 4 saker = 40 s
                                         arrestedThieves++;
+                                        toPrison.Add(t);
 
                                         Console.ForegroundColor = ConsoleColor.Blue;
                                         Console.WriteLine("\nPOLIS GRIPER TJUV och beslagtar bytet!           ");
                                         Console.ResetColor();
-                                        Thread.Sleep(2000); // Pausa i 2 sekunder
+                                        Thread.Sleep(2000);
                                     }
                                 }
                             }
                         }
+                    }
+                    foreach (Thief thief in toPrison)
+                    {
+                        city.People.Remove(thief);
+                        thief.X = rnd.Next(prison.Width);
+                        thief.Y = rnd.Next(prison.Height);
+                        prison.People.Add(thief);
                     }
                     Thread.Sleep(200);
                 }
