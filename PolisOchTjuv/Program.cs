@@ -11,7 +11,7 @@ namespace PoliceAndThieves
         static void Main(string[] args)
         {
             const int width = 100;
-            const int height = 15;
+            const int height = 10;
 
             City city = new City(width, height);
             Prison prison = new Prison(10, 10);
@@ -23,7 +23,7 @@ namespace PoliceAndThieves
             int arrestedThieves = 0;
 
             if (Console.WindowWidth < width + 2 ||
-                Console.WindowHeight < 25)
+      Console.WindowHeight < 25)
             {
                 Console.WriteLine(
                     $"Console window too small. Minimum size: {width + 2} x 25.");
@@ -250,8 +250,17 @@ namespace PoliceAndThieves
                         $"Citizens robbed: {robbedCitizens}          ");
                     Console.WriteLine(
                         $"Thieves arrested: {arrestedThieves}          ");
+                   
+
+                    DrawPlace(prison, "PRISON");
+
+                    int thievesFree = 0;
+                    foreach (Person person in city.People)
+                    {
+                        if (person is Thief) thievesFree++;
+                    }
                     Console.WriteLine(
-                        $"Thieves in prison: {prison.People.Count}          ");
+                        $"In prison: {prison.People.Count}   At large: {thievesFree}".PadRight(width + 2));
 
                     // Display the latest news.
                     Console.WriteLine();
