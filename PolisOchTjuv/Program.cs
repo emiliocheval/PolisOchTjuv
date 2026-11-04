@@ -15,6 +15,7 @@ namespace PoliceAndThieves
 
             City city = new City(width, height);
             Prison prison = new Prison(10, 10);
+            PoorHouse poorHouse = new PoorHouse(50, 10);
 
             Random random = new Random();
             List<string> newsFeed = new List<string>();
@@ -132,11 +133,30 @@ namespace PoliceAndThieves
                         }
                     }
 
+                    // Release citizens from the poorhouse after 60 seconds.
+                    for (int i = poorHouse.People.Count - 1; i >= 0; i--)
+                    {
+                        Citizen resident = (Citizen)poorHouse.People[i];
+
+                        if (DateTime.Now >= resident.PoorHouseSince.AddSeconds(60))
+                        {
+                            poorHouse.People.RemoveAt(i);
+                            resident.GiveStartingItems();
+                            resident.X = random.Next(width);
+                            resident.Y = random.Next(height);
+                            city.People.Add(resident);
+
+                            AddNews(newsFeed, "A citizen has left the poorhouse.");
+                        }
+                    }
+
                     // Move all people.
                     city.MoveAll();
                     prison.MoveAll();
+                    poorHouse.MoveAll();
 
                     List<Thief> thievesToPrison = new List<Thief>();
+                    List<Citizen> citizensToPoorHouse = new List<Citizen>();
 
                     // Check collisions between people.
                     for (int i = 0; i < city.People.Count; i++)
@@ -183,6 +203,12 @@ namespace PoliceAndThieves
                                         $"ROBBERY: A thief stole {stolenItem.Name}!");
 
                                     Thread.Sleep(2000);
+
+                                    if (citizen.Inventory.Count == 0 &&
+    !citizensToPoorHouse.Contains(citizen))
+                                    {
+                                        citizensToPoorHouse.Add(citizen);
+                                    }
                                 }
                             }
 
@@ -240,6 +266,20 @@ namespace PoliceAndThieves
                         prison.People.Add(thief);
                     }
 
+                    // Move citizens without belongings to the poorhouse.
+                    foreach (Citizen poorCitizen in citizensToPoorHouse)
+                    {
+                        city.People.Remove(poorCitizen);
+
+                        poorCitizen.PoorHouseSince = DateTime.Now;
+                        poorCitizen.X = random.Next(poorHouse.Width);
+                        poorCitizen.Y = random.Next(poorHouse.Height);
+
+                        poorHouse.People.Add(poorCitizen);
+
+                        AddNews(newsFeed, "A citizen lost everything and ended up in the poorhouse.");
+                    }
+
                     // Draw the city and statistics.
                     Console.SetCursorPosition(0, 0);
 
@@ -261,6 +301,7 @@ namespace PoliceAndThieves
                     }
                     Console.WriteLine(
                         $"In prison: {prison.People.Count}   At large: {thievesFree}".PadRight(width + 2));
+                    DrawPlace(poorHouse, "POORHOUSE");
 
                     // Display the latest news.
                     Console.WriteLine();
